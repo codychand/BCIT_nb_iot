@@ -164,6 +164,7 @@ class Parameters extends Component {
                                 alignItems: "center"
                               }}
                             >
+                            <AllPressureChart />
                             </Col>
                           </Row>
                         </TabPane>
