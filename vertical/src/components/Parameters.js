@@ -35,13 +35,13 @@ class Parameters extends Component {
     }
   }
 
-  getTemp() {
-      axios.get("http://localhost:3010/aws_query_devices")
-      .then(res => {
-          console.log(res)
-          this.setState({ tempData: res.data})
-      })
-  }
+  // getTemp() {
+  //     axios.get("http://localhost:3010/aws_query_devices")
+  //     .then(res => {
+  //         console.log(res)
+  //         this.setState({ tempData: res.data})
+  //     })
+  // }
 
   getData() {
     axios
@@ -59,6 +59,7 @@ class Parameters extends Component {
     this.getData();
     this.props.activateAuthLayout();
   }
+
   render() {
     return (
       <React.Fragment>
