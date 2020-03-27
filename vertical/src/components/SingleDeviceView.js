@@ -7,7 +7,7 @@ import { Card, CardBody, Col, Row, Spinner } from 'reactstrap';
 import ApexareaReusable from '../containers/charts/apex/apexareaReusable';
 
 let api = axios.create({
-  baseURL: "http://localhost:3010"
+  baseURL: "http://54.189.101.20:3010"
 });
 
 const MAX_CONCURRENT_REQUESTS = 1;
@@ -42,8 +42,10 @@ const SingleDeviceView = props => {
                 // console.log(deviceData[0] )
                 let h4Title = param + " readings";
                 
+                // console.log("length in the component is " + deviceData[0].tsAWS.length);
+                
                 return (
-                  <Col xl="12">
+                  <Col xl="6">
                       <Card>
                           <CardBody>
                               <h4 className="mt-0 header-title mb-4">

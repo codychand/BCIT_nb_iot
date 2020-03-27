@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from 'reactstrap';
 
 const SimpleDateTimePicker = props => {
     
     // state
     const [fromValue, setFromValue] = useState(['', Math.floor((Date.now() / 1000) - 1500000)]);
-    const [toValue, setToValue] = useState(['', Math.floor(Date.now() / 1000)])
+    const [toValue, setToValue] = useState(['', Math.floor(Date.now() / 1000)]);
+    const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
     
     // functions
     const hasThirtyDays = mm => ["02", "04", "06", "08", "10", "12"].indexOf(mm) > -1;
@@ -58,31 +59,46 @@ const SimpleDateTimePicker = props => {
         }
     }
     const setParentTimestamps = () => props.setTimestamps(fromValue, toValue);
+    const updateViewportWidthOnResize = () => setViewportWidth(window.innerWidth);
+    
+    useEffect(() => {
+        window.addEventListener("resize", updateViewportWidthOnResize);
+        return () => {
+            window.removeEventListener("resize", updateViewportWidthOnResize);
+        }
+    }, [])
   
     return (
         <div>
             <div style={{ 
                 display: 'flex', 
-                alignItems: 'center'
+                alignItems: viewportWidth <= 680 ? 'flex-end' : 'center',
+                flexDirection: viewportWidth <= 680 ? 'column' : 'row'
             }}>
-                <label style={{ marginRight: 5 }} >From:</label>
-                <input 
-                    style={{ margin: 5, maxWidth: 200 }}
-                    className="form-control" 
-                    type="search" 
-                    onChange={e => onFromInputChange(e.target.value)}
-                    placeholder="dd/mm/yyyy@hh:mm"
-                    id="from-timestamp-input" 
-                    />
-                <label style={{ margin: 5 }} >To:</label>
-                <input 
-                    style={{ margin: 5, maxWidth: 200 }}
-                    className="form-control" 
-                    type="search"
-                    onChange={e => onToInputChange(e.target.value)} 
-                    placeholder="now"
-                    id="to-timestamp-input" 
-                    />
+                <div style={{ display: 'flex', 
+                alignItems: 'center', }}>
+                    <label style={{ marginRight: 5 }} >From:</label>
+                    <input 
+                        style={{ margin: 5, maxWidth: 200 }}
+                        className="form-control" 
+                        type="search" 
+                        onChange={e => onFromInputChange(e.target.value)}
+                        placeholder="dd/mm/yyyy@hh:mm"
+                        id="from-timestamp-input" 
+                        />
+                </div>
+                <div style={{ display: 'flex', 
+                alignItems: 'center', }}>
+                    <label style={{ margin: 5 }} >To:</label>
+                    <input 
+                        style={{ margin: 5, maxWidth: 200 }}
+                        className="form-control" 
+                        type="search"
+                        onChange={e => onToInputChange(e.target.value)} 
+                        placeholder="now"
+                        id="to-timestamp-input" 
+                        />
+                </div>
                     
                 <Button 
                     style={{ margin: 10, minWidth: 100 }}

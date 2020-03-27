@@ -100,7 +100,10 @@ class Apexarea extends Component {
 
     render() {
         // console.log(this.props.device.tsAWS.length + ' => ' + this.state.options.series[0].data.length);
-
+        
+        // let x = this.props.device.tsAWS.sort((a, b) => a - b);
+        // console.log(x[0] + " to " + x[x.length-1])
+        
         return (
             <React.Fragment>
                 <ReactApexChart id={this.props.device.deviceID} options={this.state.options} series={this.state.options.series} type="area" width="100%" height="299" />

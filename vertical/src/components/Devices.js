@@ -1,21 +1,22 @@
 import axios from "axios";
 import { ConcurrencyManager } from "axios-concurrency";
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useRouteMatch } from "react-router-dom";
-import { Button, Card, CardBody, Col, Row, Spinner } from "reactstrap";
-import Apexarea from "../containers/charts/apex/apexarea";
-import { activateAuthLayout } from "../store/actions";
-import "./devices.css";
-import SimpleDateTimePicker from "./SimpleDateTimePicker";
-import SingleDeviceView from "./SingleDeviceView";
-import { withRouter } from "react-router-dom";
-import { connect } from "react-redux";
+import React, { useEffect, useState } from 'react';
+import { useRouteMatch } from 'react-router-dom';
+import { Button, Card, CardBody, Col, Row, Spinner } from 'reactstrap';
+import Apexarea from '../containers/charts/apex/apexarea';
+import { activateAuthLayout } from '../store/actions';
+import './devices.css';
+import SimpleDateTimePicker from './SimpleDateTimePicker';
+import SingleDeviceView from './SingleDeviceView';
+import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 let api = axios.create({
-  baseURL: "http://104.223.143.151:3010"
+    baseURL: "http://54.189.101.20:3010"
 });
 
+const AWS_DEVICES = ["AWS1", "AWS2", "AWS3", "AWS4", "AWS5"];
+const getDeviceIndexFromName = name => AWS_DEVICES.indexOf(name);
 const MAX_CONCURRENT_REQUESTS = 1;
 ConcurrencyManager(api, MAX_CONCURRENT_REQUESTS);
 var CancelTokenSource = axios.CancelToken.source();
@@ -113,135 +114,165 @@ const DeviceCard = props => {
             </CardBody>
           </Card>
         </Col>
-      );
-    })[0];
-  } else {
-    return content;
-  }
-};
-
-const Devices = props => {
-  // constants
-  const AAA = ["temp", "humidity", "pressure"];
-  const AWS_DEVICES = ["AWS1", "AWS2", "AWS3", "AWS4", "AWS5"];
-  const ALLOWED_DISPLAY_PARAMS = ["Temperature", "Humidity", "Pressure"];
-  const VIEWPORT_CHANGE_FLEX_PX = 1630;
-  const newTime = [
-    ["", Math.floor(Date.now() / 1000 - 1500000)],
-    ["", Math.floor(Date.now() / 1000)]
-  ];
-
-  // state
-  const [selectedDevice, setSelectedDevice] = useState(
-    props.selectedDevice || null
-  );
-  const [displayParameters, setDisplayParameters] = useState(
-    [0, 1].map(i => ALLOWED_DISPLAY_PARAMS[i])
-  );
-  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
-  const [dataFiltering, setDataFiltering] = useState(true);
-  const [defaultRange, setDefaultRange] = useState(true);
-  const [timestampsWithValue, setTimestampsWithValue] = useState(newTime);
-  const [timestamps, setTimestamps] = useState([newTime[0][1], newTime[1][1]]);
-
-  // functions
-  const toggleDisplayParameter = param => {
-    let currentParams = displayParameters.slice();
-    const i = currentParams.indexOf(param);
-    const j = currentParams.indexOf(null);
-
-    if (i > -1) {
-      currentParams[i] = null;
-    } else if (j > -1) {
-      currentParams[j] = param;
+    );
+    
+    useEffect(() => {
+        // const lsCheck = localStorage.getItem(props.deviceName);
+        
+        // if (lsCheck) {
+        //     let d = JSON.parse(lsCheck);
+        //     if (props.default) {
+        //         setDeviceData(d.data);
+        //         return;
+        //     }
+        // }
+        
+        api.post(AWS_DATA_QUERY_URL, {
+            parameters: ["temp", "pressure", "humidity", "tsAWS"],
+            start_timestamp: props.timestamps[0],
+            end_timestamp: props.timestamps[1],
+            devices: [props.deviceName]
+        }, { cancelToken: CancelTokenSource.token })
+        .then(res => {
+            setDeviceData(res.data);
+            // localStorage.setItem(
+            //     props.deviceName, 
+            //     JSON.stringify(Object.assign({ 
+            //         timestamps: props.timestamps, 
+            //         data: res.data
+            //     }))
+            // );
+        })
+        .catch(err => console.log(err))
+        
+        return () => {
+            CancelTokenSource.cancel("long request cancelled at re-render");
+            CancelTokenSource = axios.CancelToken.source();
+        }
+    }, [props.deviceName, props.timestamps, props.default]);
+    
+    if (deviceData) {
+        return deviceData.map((device, index) => {
+            let size = (props.viewportWidth <= 1700) ? "6" : "4";
+            
+            return (
+                <Col key={index} xl={size}>
+                    <Card>
+                        <CardBody style={{ padding: props.viewportWidth <= 680 ? 5 : '1.25rem' }} >
+                            <Button 
+                                className="btn-icon" 
+                                onClick={() => props.setSelectedDevice(getDeviceIndexFromName(device.deviceID)) }
+                                color="secondary">  
+                                <span className="btn-icon-label">
+                                    <i className="mdi mdi-bullseye-arrow mr-2"></i>
+                                </span> 
+                                {device.deviceID}
+                            </Button>
+                            <div id="area-chart">
+                                <Apexarea 
+                                    dataFiltering={props.dataFiltering}
+                                    device={device} 
+                                    left={props.displayParameters[0]} 
+                                    right={props.displayParameters[1]} />
+                            </div>
+                        </CardBody>
+                    </Card>
+                </Col>
+            )
+        })[0];
     } else {
       currentParams[0] = param;
     }
 
-    setDisplayParameters(currentParams);
-
-    console.log(timestampsWithValue);
-
-    if (
-      document.getElementById("from-timestamp-input").value ===
-        timestampsWithValue[0][0] &&
-      document.getElementById("to-timestamp-input").value ===
-        timestampsWithValue[1][0]
-    ) {
-      setDefaultRange(true);
-    } else {
-      setDefaultRange(false);
+const Devices = props => {
+    // constants
+    const AAA = ["temp", "humidity", "pressure"];
+    const ALLOWED_DISPLAY_PARAMS = ["Temperature", "Humidity", "Pressure"];
+    const VIEWPORT_CHANGE_FLEX_PX = 1630;
+    const newTime = [
+        ['', Math.floor((Date.now() / 1000) - 1500000)],
+        ['', Math.floor(Date.now() / 1000)]
+    ];
+    
+    let sd = null;
+    if (props.location && props.location.state && props.location.state.selectedDevice) {
+        sd = getDeviceIndexFromName(props.location.state.selectedDevice)
     }
-  };
-  const back = () => setSelectedDevice(null);
-  const updateViewportWidthOnResize = () => setViewportWidth(window.innerWidth);
-  const setTimestampsHandler = (from, to) => {
-    setTimestamps([from[1], to[1]]);
-    setTimestampsWithValue([from, to]);
-    if (from[0] === "" && to[0] === "") {
-      setDefaultRange(true);
-    } else {
-      setDefaultRange(false);
+    
+    // state 
+    const [selectedDevice, setSelectedDevice] = useState(sd);
+    const [displayParameters, setDisplayParameters] = useState([0,1].map(i => ALLOWED_DISPLAY_PARAMS[i]));
+    const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
+    const [dataFiltering, setDataFiltering] = useState(true);
+    const [defaultRange, setDefaultRange] = useState(true);
+    const [timestampsWithValue, setTimestampsWithValue] = useState(newTime)
+    const [timestamps, setTimestamps] = useState([newTime[0][1], newTime[1][1]])
+    
+    // functions
+    const toggleDisplayParameter = param => {
+        let currentParams = displayParameters.slice();
+        const i = currentParams.indexOf(param);
+        const j = currentParams.indexOf(null);
+        
+        if (i > -1) {
+            currentParams[i] = null;
+        } else if (j > -1) {
+            currentParams[j] = param;
+        } else {
+            currentParams[0] = param;
+        }
+        
+        setDisplayParameters(currentParams);
+        
+        if (document.getElementById('from-timestamp-input').value === timestampsWithValue[0][0] &&
+            document.getElementById('to-timestamp-input').value === timestampsWithValue[1][0]) {
+                setDefaultRange(true);
+            } else {
+                setDefaultRange(false);
+            }
     }
-  };
-
-  console.log("rendinerg");
-
-  // render logic
-  useRouteMatch("/iot_devices");
-  let content;
-  let backButton = "";
-  let dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(props.activateAuthLayout());
-
-    window.addEventListener("resize", updateViewportWidthOnResize);
-
-    return () =>
-      window.removeEventListener("resize", updateViewportWidthOnResize);
-  }, [dispatch]);
-
-  content = (
-    <Row
-      style={{ display: "flex", justifyContent: "center", flexWrap: "wrap" }}
-    >
-      {AWS_DEVICES.map(device => (
-        <DeviceCard
-          dataFiltering={dataFiltering}
-          deviceName={device}
-          displayParameters={displayParameters}
-          setSelectedDevice={setSelectedDevice}
-          timestamps={timestamps}
-          default={defaultRange}
-          key={timestamps[0] + getRandomKey()}
-          viewportWidth={viewportWidth}
-        />
-      ))}
-    </Row>
-  );
-
-  // open a single device view if a device is selected
-  if (selectedDevice != null) {
-    let allowedParams = AAA.slice(0);
-
-    backButton = (
-      <div className="col-sm-1">
-        <i
-          className="ion ion-md-arrow-back devices_back_button"
-          onClick={() => back()}
-        />
-      </div>
-    );
-    content = "";
+    const back = () => setSelectedDevice(null);
+    const updateViewportWidthOnResize = () => setViewportWidth(window.innerWidth);
+    const setTimestampsHandler = (from, to) => {
+        setTimestamps([from[1], to[1]]);
+        setTimestampsWithValue([from, to])
+        if (from[0] === "" && to[0] === "") {
+            setDefaultRange(true);
+        } else {
+            setDefaultRange(false);
+        }
+    };
+    
+    // render logic
+    useRouteMatch("/iot_devices");
+    let content; 
+    let backButton = '';
+    
+    props.activateAuthLayout();
+    
+    useEffect(() => {
+        window.addEventListener("resize", updateViewportWidthOnResize);
+        
+        return () => window.removeEventListener("resize", updateViewportWidthOnResize);
+    }, [])
+    
     content = (
-      <SingleDeviceView
-        deviceName={AWS_DEVICES[selectedDevice]}
-        displayParameters={displayParameters}
-        timestamps={timestamps}
-        key={timestamps[0] + getRandomKey()}
-        allowedParams={allowedParams}
-      />
+        <Row style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+            { 
+                AWS_DEVICES.map(device => {
+                    return (
+                    <DeviceCard 
+                        dataFiltering={dataFiltering}
+                        deviceName={device}
+                        displayParameters={displayParameters}
+                        setSelectedDevice={setSelectedDevice}
+                        timestamps={timestamps}
+                        default={defaultRange}
+                        key={timestamps[0] + getRandomKey()}
+                        viewportWidth={viewportWidth} />
+                )}) 
+            }
+        </Row>
     );
   }
 
@@ -281,100 +312,6 @@ const Devices = props => {
     );
   }
 
-  return (
-    <React.Fragment>
-      <div className="content">
-        <div className="container-fluid">
-          <div className="page-title-box">
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column"
-              }}
-            >
-              <div style={{ display: "flex" }}>
-                {backButton}
-                <div>
-                  <h4 className="page-title">Devices</h4>
-                  <ol className="breadcrumb">
-                    <li className="breadcrumb-item active">
-                      {selectedDevice != null
-                        ? AWS_DEVICES[selectedDevice]
-                        : "All devices"}
-                    </li>
-                  </ol>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems:
-                    viewportWidth <= VIEWPORT_CHANGE_FLEX_PX
-                      ? "flex-start"
-                      : "center",
-                  flexDirection:
-                    viewportWidth <= VIEWPORT_CHANGE_FLEX_PX ? "column" : "row"
-                }}
-              >
-                <SimpleDateTimePicker
-                  setTimestamps={(from, to) => setTimestampsHandler(from, to)}
-                />
-                {chkbox}
-                <div className="float-right d-none d-md-block">
-                  <Row
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      margin: 0
-                    }}
-                  >
-                    <p style={{ margin: 0, padding: 5 }}>Show parameters => </p>
-                    {ALLOWED_DISPLAY_PARAMS.map(param => {
-                      if (displayParameters.indexOf(param) > -1) {
-                        return (
-                          <Button
-                            key={displayParameters.indexOf(param)}
-                            color="success"
-                            style={{
-                              margin: 5
-                            }}
-                            onClick={() => {
-                              toggleDisplayParameter(param);
-                            }}
-                          >
-                            {param}
-                          </Button>
-                        );
-                      } else {
-                        return (
-                          <Button
-                            key={getRandomKey()}
-                            outline
-                            color="info"
-                            style={{
-                              margin: 5
-                            }}
-                            onClick={() => {
-                              toggleDisplayParameter(param);
-                            }}
-                          >
-                            {param}
-                          </Button>
-                        );
-                      }
-                    })}
-                  </Row>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {content}
-        </div>
-      </div>
-    </React.Fragment>
-  );
-};
+export default withRouter(connect(null, { activateAuthLayout })(Devices));
 
 export default withRouter(connect(null, { activateAuthLayout })(Devices));

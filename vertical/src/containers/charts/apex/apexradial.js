@@ -34,7 +34,7 @@ class Apexradial extends Component {
                     },   
                     value: {
                         offsetY: 10,
-                        fontSize: '20px'
+                        fontSize: '16px'
                     }                     
                 }
               }
@@ -62,7 +62,7 @@ class Apexradial extends Component {
     render() {
         return (
             <React.Fragment>
-                <ReactApexChart options={this.state.options} series={this.state.series} type="radialBar" height="210" />
+                <ReactApexChart options={this.state.options} series={this.state.series} type="radialBar" height="100" />
             </React.Fragment>
         );
     }

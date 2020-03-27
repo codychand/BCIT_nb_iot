@@ -34,7 +34,7 @@ class Apexbar extends Component {
                     labels: {
                       rotate: -90
                     },
-                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug','Sep', 'Oct', 'Nov', 'Dec'],
+                    categories: this.props.x,
                   },
                   colors: ['#e74c5e'],
                 
@@ -57,8 +57,8 @@ class Apexbar extends Component {
 
     render() {
         const apexBarChartData = [{
-            name: 'Series 1',
-            data: [42, 56, 40, 64, 26, 42, 56, 35, 62, 46, 32, 26]
+            name: 'Total Device Updates',
+            data: this.props.y
           }];
 
         return (

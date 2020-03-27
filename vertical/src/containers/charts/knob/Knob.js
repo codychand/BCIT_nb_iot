@@ -47,7 +47,7 @@ class Knob extends React.Component {
         height: 200,
         thickness: 0.35,
         lineCap: 'butt',
-        bgColor: '#EEE',
+        bgColor: 'darkgrey',
         fgColor: '#EA2',
         inputColor: '',
         font: 'Arial',

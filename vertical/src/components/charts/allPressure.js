@@ -125,7 +125,7 @@ export class AllPressureChart extends Component {
               options={this.state.options}
               series={this.state.series}
               type="line"
-              width="1000"
+              height="1000"
             />
           </div>
         </div>

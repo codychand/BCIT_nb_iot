@@ -1,29 +1,14 @@
+import axios from "axios";
+import classnames from "classnames";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import {
-  Row,
-  Col,
-  Card,
-  CardBody,
-  TabContent,
-  TabPane,
-  Nav,
-  NavItem,
-  NavLink,
-  CardText
-} from "reactstrap";
-import { activateAuthLayout } from "../store/actions";
-import Settingmenu from "../containers/MainContent/Subpages/Settingmenu";
-import { Link } from "react-router-dom";
-import classnames from "classnames";
-import { useRouteMatch } from "react-router-dom";
-import { useDispatch } from "react-redux";
-
-import axios from "axios";
-
+import { withRouter } from 'react-router-dom';
+import { Card, CardBody, Col, Nav, NavItem, NavLink, Row, TabContent, TabPane } from "reactstrap";
 import AllHumidityChart from "../components/charts/allHumidity";
-import AllTemperatureChart from "../components/charts/allTemperatures";
 import AllPressureChart from "../components/charts/allPressure";
+import AllTemperatureChart from "../components/charts/allTemperatures";
+import Settingmenu from "../containers/MainContent/Subpages/Settingmenu";
+import { activateAuthLayout } from "../store/actions";
 
 class Parameters extends Component {
   constructor(props) {
@@ -60,7 +45,7 @@ class Parameters extends Component {
 
   getData() {
     axios
-      .post("http://localhost:3010/aws_query_devices", {
+      .post("http://54.189.101.20:3010/aws_query_devices", {
         parameters: ["temp", "pressure", "humidity", "tsAWS"],
         start_timestamp: Math.floor(Date.now() / 1000 - 1500000),
         end_timestamp: Math.floor(Date.now() / 1000),
@@ -195,4 +180,4 @@ class Parameters extends Component {
   }
 }
 
-export default connect(null, { activateAuthLayout })(Parameters);
+export default withRouter(connect(null, { activateAuthLayout })(Parameters));
