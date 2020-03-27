@@ -29,9 +29,9 @@ class Apexarea extends Component {
 
     constructor(props) {
         super(props);
-        
+
         let displayParams = []
-        
+
         if (this.props.left !== null) displayParams.push(this.props.left);
         if (this.props.right !== null) displayParams.push(this.props.right);
 
@@ -93,14 +93,14 @@ class Apexarea extends Component {
                 })
             }
         }
-        
-        if (displayParams.length === 2) stateObj.options.yaxis[1].opposite = true; 
+
+        if (displayParams.length === 2) stateObj.options.yaxis[1].opposite = true;
         this.state = stateObj;
     }
 
     render() {
         // console.log(this.props.device.tsAWS.length + ' => ' + this.state.options.series[0].data.length);
-        
+
         return (
             <React.Fragment>
                 <ReactApexChart id={this.props.device.deviceID} options={this.state.options} series={this.state.options.series} type="area" width="100%" height="299" />

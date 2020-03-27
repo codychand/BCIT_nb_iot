@@ -34,7 +34,10 @@ class Parameters extends Component {
       activeTab1: "5",
       // aws data
       startDate: new Date(),
-      devices: ["AWS1", "AWS2", "AWS3", "AWS4", "AWS5"]
+      devices: ["AWS1", "AWS2", "AWS3", "AWS4", "AWS5"],
+      tempData: [],
+      humidityData: [],
+      pressureData: [],
     };
     this.toggle1 = this.toggle1.bind(this);
   }
@@ -45,6 +48,14 @@ class Parameters extends Component {
         activeTab1: tab
       });
     }
+  }
+
+  getTemp() {
+      axios.get("http://localhost:3010/aws_query_devices")
+      .then(res => {
+          console.log(res)
+          this.setState({ tempData: res.data})
+      })
   }
 
   getData() {
@@ -168,7 +179,6 @@ class Parameters extends Component {
                                 alignItems: "center"
                               }}
                             >
-                              <AllPressureChart />
                             </Col>
                           </Row>
                         </TabPane>
