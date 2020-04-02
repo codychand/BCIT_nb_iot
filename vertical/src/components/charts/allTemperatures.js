@@ -120,7 +120,7 @@ export class AllTemperatureChart extends Component {
           options={this.state.options}
           series={this.state.options.series}
           type="line"
-          width="1000"
+          width="100%"
         />
       </React.Fragment>
     );

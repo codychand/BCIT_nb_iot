@@ -6,7 +6,6 @@ const SimpleDateTimePicker = props => {
     // state
     const [fromValue, setFromValue] = useState(['', Math.floor((Date.now() / 1000) - 1500000)]);
     const [toValue, setToValue] = useState(['', Math.floor(Date.now() / 1000)]);
-    const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
     
     // functions
     const hasThirtyDays = mm => ["02", "04", "06", "08", "10", "12"].indexOf(mm) > -1;
@@ -59,21 +58,13 @@ const SimpleDateTimePicker = props => {
         }
     }
     const setParentTimestamps = () => props.setTimestamps(fromValue, toValue);
-    const updateViewportWidthOnResize = () => setViewportWidth(window.innerWidth);
-    
-    useEffect(() => {
-        window.addEventListener("resize", updateViewportWidthOnResize);
-        return () => {
-            window.removeEventListener("resize", updateViewportWidthOnResize);
-        }
-    }, [])
   
     return (
         <div>
             <div style={{ 
                 display: 'flex', 
-                alignItems: viewportWidth <= 680 ? 'flex-end' : 'center',
-                flexDirection: viewportWidth <= 680 ? 'column' : 'row'
+                alignItems: props.viewportWidth <= 680 ? 'flex-end' : 'center',
+                flexDirection: props.viewportWidth <= 680 ? 'column' : 'row'
             }}>
                 <div style={{ display: 'flex', 
                 alignItems: 'center', }}>

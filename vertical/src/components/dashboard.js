@@ -50,7 +50,6 @@ class Dashboard extends Component {
         }
         this.toggleStock = this.toggleStock.bind(this);
         this.toggleMessages = this.toggleMessages.bind(this);
-        this.updateViewportWidthOnResize = this.updateViewportWidthOnResize.bind(this);
         this.horizontalScrollEnable = this.horizontalScrollEnable.bind(this);
         this.setHighlightThreshold = this.setHighlightThreshold.bind(this);
     }
@@ -69,10 +68,6 @@ class Dashboard extends Component {
         })
         .then(d => this.setState({ data: d.data }))
         .catch(e => console.log(e))
-    }
-    
-    updateViewportWidthOnResize () {
-        this.setState({ viewportWidth: window.innerWidth })
     }
     
     horizontalScrollEnable (e) {
@@ -96,12 +91,7 @@ class Dashboard extends Component {
     componentDidMount() {
         this.getData();
         this.props.activateAuthLayout();
-        window.addEventListener("resize", this.updateViewportWidthOnResize);
         window.addEventListener('wheel', this.horizontalScrollEnable);
-    }
-    
-    componentWillUnmount () {
-        window.removeEventListener("resize", this.updateViewportWidthOnResize);
     }
 
     toggleStock(tab) {
@@ -136,7 +126,7 @@ class Dashboard extends Component {
             }
             
             return this.state.data.map(device => {
-                let size = (this.state.viewportWidth <= 1700) ? "6" : "4";
+                let size = (this.props.viewportWidth <= 1700) ? "6" : "4";
                 let health = Math.floor((Math.max(...device.tsAWS) - Math.min(...device.tsAWS)) / device.tsAWS.length);
                 let health_s = "Transmitting updates every " + health + " seconds (on average)";
                 
@@ -247,10 +237,10 @@ class Dashboard extends Component {
                             </div>
                         </div>
                         
-                        <div style={{ display: 'flex', flexDirection: (this.state.viewportWidth <= 1250) ? 'column' : 'row' }}>
+                        <div style={{ display: 'flex', flexDirection: (this.props.viewportWidth <= 1250) ? 'column' : 'row' }}>
                             
-                            <div style={{ display: 'flex', flexDirection: 'column', width: (this.state.viewportWidth <= 1250) ? '100%' : '70%', paddingRight: this.state.viewportWidth <= 800 ? 0 : 35 }} >
-                                <div style={{ display: 'flex', alignItems: this.state.viewportWidth <= 800 ? 'flex-start' : 'center', flexDirection: this.state.viewportWidth <= 800 ? 'column' : 'row' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', width: (this.props.viewportWidth <= 1250) ? '100%' : '70%', paddingRight: this.props.viewportWidth <= 800 ? 0 : 35 }} >
+                                <div style={{ display: 'flex', alignItems: this.props.viewportWidth <= 800 ? 'flex-start' : 'center', flexDirection: this.props.viewportWidth <= 800 ? 'column' : 'row' }}>
                                     <div>
                                         <h3 style={{ fontWeight: 'normal', margin: 0 }}>Average update interval</h3>
                                         <div style={{ padding: '10px 0px' }} >
@@ -260,7 +250,7 @@ class Dashboard extends Component {
                                             </span>
                                         </div>
                                     </div>
-                                    <div style={{ marginLeft: this.state.viewportWidth <= 800 ? 0 : 50, marginTop: 10, marginBottom: 10 }} >
+                                    <div style={{ marginLeft: this.props.viewportWidth <= 800 ? 0 : 50, marginTop: 10, marginBottom: 10 }} >
                                         <Dropdown 
                                             isOpen={this.state.drp_main} 
                                             toggle={() => this.setState({ drp_main: !this.state.drp_main })}>
@@ -302,7 +292,7 @@ class Dashboard extends Component {
                                 </div>
                                 
                                 <Row style={{ marginTop: 15 }} >
-                                    <Col xl={this.state.viewportWidth <= 1650 ? "12" : "10"}>
+                                    <Col xl={this.props.viewportWidth <= 1650 ? "12" : "10"}>
                                         <Card>
                                             <CardBody>
                                                 <h4 className="mt-0 header-title mb-4">Number of Updates</h4>
@@ -315,7 +305,7 @@ class Dashboard extends Component {
                                 </Row>
                             </div>
                             
-                            <div style={{ display: 'flex', flexDirection: 'column', width: (this.state.viewportWidth <= 1250) ? '100%' : '30%', paddingLeft: 15 }} >
+                            <div style={{ display: 'flex', flexDirection: 'column', width: (this.props.viewportWidth <= 1250) ? '100%' : '30%', paddingLeft: 15 }} >
                                 <div>
                                     <h3 style={{ fontWeight: 'normal', margin: 0 }}>Device Activity report</h3>
                                     <div style={{ padding: '10px 0px' }} >
@@ -325,7 +315,7 @@ class Dashboard extends Component {
                                         </span>
                                     </div>
                                 </div>
-                                <Row style={{ maxWidth: this.state.viewportWidth <= 800 ? '100%' : 450 }} >
+                                <Row style={{ maxWidth: this.props.viewportWidth <= 800 ? '100%' : 450 }} >
                                     <div style={{ width: '100%' }} >
                                         <Card style={{ borderRadius: 10 }}>
                                             <CardBody>

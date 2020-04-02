@@ -3,6 +3,8 @@ import Floor from './floors'
 import Floor1 from '../../images/floor1.png'
 import Floor1m from '../../images/floor1m.png'
 import Floor2 from '../../images/floor2.png'
+import { TabContent, TabPane, Nav, NavItem, NavLink, Card, Button, CardTitle, CardText, Row, Col, CardBody } from 'reactstrap';
+import classnames from 'classnames';
 
 const images =[{
     floor: Floor1,
@@ -23,52 +25,60 @@ export default class Locations extends Component {
         this.state = {
             currentFloor: 0,
             floor: null,
+            activeTab: '1',
         };
+        
+        this.toggleTab = this.toggleTab.bind(this);
+    }
+    
+    toggleTab (tab) {
+        if (this.state.activeTab !== tab) this.setState({ activeTab: tab, currentFloor: parseInt(tab) });
     }
 
     render() {
         
         return (
             
-            <div style={{width: "100%"}}>
-                <div style={{ display: "flex" }}>
-                    
+            <Card>
+                <CardBody style={{ padding: this.props.viewportWidth <= 680 ? 5 : '1.25rem' }}>
+                <TabContent activeTab={this.state.activeTab}>
+                    {
+                        images.map((img) => (
+                            <TabPane className="p-3" tabId={images.indexOf(img).toString()}>
+                                <Floor
+                                    image={img.floor}
+                                    devices={this.props.dummyData.allDevices.filter((device) => {
+                                        if (this.props.dummyData.floors[this.state.currentFloor] === device.location)
+                                            return device
+                                            
+                                        return false
+                                    })} 
+                                />
+                            </TabPane>
+                        ))
+                    }
+                </TabContent>
+                <Nav pills className="navtab-bg nav-justified">
                     {
                         images.map((e) => {
                             let i = images.indexOf(e);
                             let current = this.state.currentFloor === i;
-    
+                            
                             return (
-                                <div 
-                                    key={i}
-                                    style={{
-                                        padding: '0.5rem',
-                                        cursor: "pointer",
-                                        backgroundColor: (current) ? "black" : "transparent",
-                                        color: (current) ? "white" : "black",
-                                        marginLeft: "50px",
-                                        marginTop: "70px"
-                                    }} 
-                                    onClick={() => this.setState({ currentFloor: i})}
-                                >
-                                    {e.name}
-                                </div>
-                            )
+                                <NavItem style={{ cursor: 'pointer' }} >
+                                    <NavLink
+                                        className={classnames({ active: this.state.activeTab === i.toString() })}
+                                        onClick={() => { this.toggleTab(i.toString()); }}
+                                    >
+                                        {e.name}
+                                    </NavLink>
+                                </NavItem>
+                            );
                         })
                     }
-                </div>
-                <div>
-                    <Floor
-                        image={images[this.state.currentFloor].floor}
-                        devices={this.props.dummyData.allDevices.filter((device) => {
-                            if (this.props.dummyData.floors[this.state.currentFloor] === device.location)
-                                return device
-                                
-                            return false
-                        })} 
-                    />
-                </div>
-            </div>
+                </Nav>
+                </CardBody>
+            </Card>
         )
     }
 }

@@ -64,7 +64,7 @@ class Parameters extends Component {
     return (
       <React.Fragment>
         <Row>
-          <div className="content">
+          <div className="content col-lg-8">
             <div className="container-fluid">
               <div className="page-title-box">
                 <div className="row align-items-center">
@@ -76,18 +76,13 @@ class Parameters extends Component {
                       </li>
                     </ol>
                   </div>
-                  <div className="col-sm-6">
-                    <div className="float-right d-none d-md-block">
-                      <Settingmenu />
-                    </div>
-                  </div>
                 </div>
               </div>
 
               <Row>
                 <Col>
                   <Card>
-                    <CardBody>
+                    <CardBody style={{ padding: this.props.viewportWidth <= 680 ? 5 : '1.25rem' }}>
                       <Nav pills className="navtab-bg nav-justified">
                         <NavItem>
                           <NavLink
@@ -151,7 +146,7 @@ class Parameters extends Component {
                                 alignItems: "center"
                               }}
                             >
-                              <AllHumidityChart />
+                              {/* <AllHumidityChart /> */}
                             </Col>
                           </Row>
                         </TabPane>
@@ -165,7 +160,7 @@ class Parameters extends Component {
                                 alignItems: "center"
                               }}
                             >
-                            <AllPressureChart />
+                              {/* <AllPressureChart /> */}
                             </Col>
                           </Row>
                         </TabPane>

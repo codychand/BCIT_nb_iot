@@ -22,7 +22,23 @@ import './App.scss';
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {}
+    this.state = {
+      viewportWidth: window.innerWidth // should probably be in the redux store or something.
+    }
+    
+    this.updateViewportWidthOnResize = this.updateViewportWidthOnResize.bind(this);
+  }
+  
+  updateViewportWidthOnResize () {
+    this.setState({ viewportWidth: window.innerWidth })
+  }
+  
+  componentDidMount() {
+    window.addEventListener("resize", this.updateViewportWidthOnResize);
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener("resize", this.updateViewportWidthOnResize);
   }
 
   render() {
@@ -34,31 +50,31 @@ class App extends Component {
             
             <Route exact path="/dashboard">
               <Layout>
-                <Dashboard />
+                <Dashboard viewportWidth={this.state.viewportWidth} />
               </Layout>
             </Route>
             
             <Route exact path="/iot_devices">
               <Layout>
-                <Devices />
+                <Devices viewportWidth={this.state.viewportWidth} />
               </Layout>
             </Route>
             
             <Route exact path="/iot_parameters">
               <Layout>
-                <Parameters />
+                <Parameters viewportWidth={this.state.viewportWidth} />
               </Layout>
             </Route>
             
             <Route exact path="/iot_locations">
               <Layout>
-                <LocationsComponent />
+                <LocationsComponent viewportWidth={this.state.viewportWidth} />
               </Layout>
             </Route>
             
             <Route path="/">
               <Layout>
-                <Dashboard />
+                <Dashboard viewportWidth={this.state.viewportWidth} />
               </Layout>
             </Route>
             
