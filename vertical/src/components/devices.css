@@ -7,3 +7,28 @@
     color: lightblue;
     font-size: 40px;
 }
+
+.react-datetimerange-picker__range-divider {
+    padding: 5px;
+}
+
+.react-datetimerange-picker__wrapper {
+    border: none !important;
+}
+
+.react-datetimerange-picker * {
+    color: black;
+}
+
+.react-datetimerange-picker__inputGroup__amPm {
+    padding: 0;
+    margin-left: 5px;
+    color: black !important;   
+}
+
+@media screen and (max-width: 870px) {
+    .react-datetimerange-picker__wrapper {
+        display: flex;
+        flex-wrap: wrap;
+    }
+}

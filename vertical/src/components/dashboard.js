@@ -1,23 +1,14 @@
-import React, { Component } from 'react';
-import { Row, Col, Card, CardBody, Spinner, Dropdown, Button, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
-import { activateAuthLayout } from '../store/actions';
-import { withRouter, Link } from 'react-router-dom';
-import { connect } from 'react-redux';
-import Apexbar from '../containers/charts/apex/apexbar';
-import Apexradial from '../containers/charts/apex/apexradial';
-// import Settingmenu from '../Subpages/Settingmenu';
-import Knob from '../containers/charts/knob/Knob';
-
-import { ConcurrencyManager } from "axios-concurrency";
 import axios from 'axios';
+import { ConcurrencyManager } from "axios-concurrency";
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { Link, withRouter } from 'react-router-dom';
+import { Button, Card, CardBody, Col, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Row, Spinner } from 'reactstrap';
+import Apexbar from '../containers/charts/apex/apexbar';
+import Knob from '../containers/charts/knob/Knob';
+import { activateAuthLayout } from '../store/actions';
+import SimpleDateTimePicker from './SimpleDateTimePicker';
 
-import Apexchart1 from '../containers/charts/apex/apexchart1';
-import Apexchart2 from '../containers/charts/apex/apexchart2';
-import Apexchart3 from '../containers/charts/apex/apexchart3';
-import BarChart from '../containers/charts/apex/bar_chart';
-
-//Charts
-// import Apexarea from '../../../containers/charts/apex/apexarea';
 
 let api = axios.create({
     baseURL: "http://54.189.101.20:3010"
@@ -26,7 +17,6 @@ let api = axios.create({
 const MAX_CONCURRENT_REQUESTS = 1;
 ConcurrencyManager(api, MAX_CONCURRENT_REQUESTS);
 
-const getRandomKey = () => Math.floor(Math.random() * Math.floor(10000));
 const getTimeTextFromUnixTime = (unixTime, displayType) => {
     const dateObj = new Date();
     dateObj.setTime(unixTime * 1000);
@@ -38,15 +28,23 @@ class Dashboard extends Component {
 
     constructor(props) {
         super(props);
+        const lsStartTs = localStorage.getItem('start_timestamp');
+        const lsEndTs = localStorage.getItem('end_timestamp');
+        const newStartTs = Math.floor((Date.now() / 1000) - 2500000);
+        const newEndTs = Math.floor(Date.now() / 1000);
+        
+        if (!lsStartTs && !lsEndTs) {
+            localStorage.setItem('start_timestamp', newStartTs);
+            localStorage.setItem('end_timestamp', newEndTs);
+        }
+        
         this.state = { 
             activeTab: '1', 
             activeother: '1', 
-            startDate: new Date(),
             devices: ["AWS1", "AWS2", "AWS3", "AWS4", "AWS5"],
-            viewportWidth: window.innerWidth,
-            start_timestamp: Math.floor((Date.now() / 1000) - 2500000),
-            end_timestamp: Math.floor(Date.now() / 1000),
-            highlightLongerThan: 15
+            start_timestamp: parseInt(lsStartTs) || newStartTs,
+            end_timestamp: parseInt(lsEndTs) || newEndTs,
+            highlightLongerThan: 2000
         }
         this.toggleStock = this.toggleStock.bind(this);
         this.toggleMessages = this.toggleMessages.bind(this);
@@ -57,6 +55,14 @@ class Dashboard extends Component {
     setHighlightThreshold (t) {
         if (t === this.state.highlightLongerThan) return;
         this.setState({ highlightLongerThan: t });
+    }
+    
+    setTimestamps (from, to) {
+        this.setState({
+            start_timestamp: from,
+            end_timestamp: to
+        })
+        window.location.reload();
     }
 
     getData () {
@@ -162,8 +168,10 @@ class Dashboard extends Component {
                                     <h3 style={{
                                         margin: 0,
                                         padding: 0,
-                                        color: (health >= this.state.highlightLongerThan) ? 'brown' : 'green'
-                                    }} >{ health } s</h3>
+                                        color: (
+                                            health >= this.state.highlightLongerThan || 
+                                            health === Number.NEGATIVE_INFINITY) ? 'brown' : 'green'
+                                    }} >{ health === Number.NEGATIVE_INFINITY ? "No data" : health + ' s' }</h3>
                                 </div>
                             </div>
                         </CardBody>
@@ -178,6 +186,8 @@ class Dashboard extends Component {
         let latest = null;
         let devices = [];
         let healths = [];
+        
+        console.log("hereeeee" + this.state.start_timestamp + ", " + this.state.end_timestamp)
         
         const getDailyUpdates = () => {
             if (!this.state.data) return null;
@@ -220,7 +230,6 @@ class Dashboard extends Component {
         let spinner = <Spinner color="info" style={{ marginLeft: 75, marginTop: 75 }} />;
         let dailyUpdates = getDailyUpdates();
         let inactivityReport = percentageInactive(60*20);
-        console.log(inactivityReport);
 
         return (
             <React.Fragment>
@@ -238,15 +247,24 @@ class Dashboard extends Component {
                         </div>
                         
                         <div style={{ display: 'flex', flexDirection: (this.props.viewportWidth <= 1250) ? 'column' : 'row' }}>
-                            
+
                             <div style={{ display: 'flex', flexDirection: 'column', width: (this.props.viewportWidth <= 1250) ? '100%' : '70%', paddingRight: this.props.viewportWidth <= 800 ? 0 : 35 }} >
-                                <div style={{ display: 'flex', alignItems: this.props.viewportWidth <= 800 ? 'flex-start' : 'center', flexDirection: this.props.viewportWidth <= 800 ? 'column' : 'row' }}>
+                                
+                                <SimpleDateTimePicker 
+                                    viewportWidth={this.props.viewportWidth} 
+                                    setTimestamps={(from, to) => this.setTimestamps(from, to)} />
+                                
+                                <div style={{ display: 'flex', alignItems: this.props.viewportWidth <= 800 ? 'flex-start' : 'center', flexDirection: this.props.viewportWidth <= 800 ? 'column' : 'row', marginTop: 15 }}>
                                     <div>
                                         <h3 style={{ fontWeight: 'normal', margin: 0 }}>Average update interval</h3>
                                         <div style={{ padding: '10px 0px' }} >
-                                            Average number of seconds a device took to send an update since
+                                            Average number of seconds a device took to send an update from 
                                             <span className="text-info">
-                                                {' ' + getTimeTextFromUnixTime(this.state.start_timestamp)}
+                                                {' ' + getTimeTextFromUnixTime(this.state.start_timestamp) + ' '}
+                                            </span>
+                                            to 
+                                            <span className="text-info">
+                                                {' ' + getTimeTextFromUnixTime(this.state.end_timestamp)}
                                             </span>
                                         </div>
                                     </div>
@@ -255,7 +273,10 @@ class Dashboard extends Component {
                                             isOpen={this.state.drp_main} 
                                             toggle={() => this.setState({ drp_main: !this.state.drp_main })}>
                                             <DropdownToggle style={{ color: 'black' }} className="btn btn-info" caret>
-                                                Highlight devices that take longer than{' ' + this.state.highlightLongerThan + 's'}
+                                                { this.props.viewportWidth <= 380 ?
+                                                    "Time > " :
+                                                    "Highlight devices that take longer than" }
+                                                {' ' + this.state.highlightLongerThan + 's'}
                                             </DropdownToggle>
                                             <DropdownMenu>
                                                 <DropdownItem onClick={() => this.setHighlightThreshold(15)} >
@@ -283,9 +304,13 @@ class Dashboard extends Component {
                                     <div>
                                         <h3 style={{ fontWeight: 'normal', margin: 0 }}>Daily update numbers</h3>
                                         <div style={{ padding: '10px 0px' }} >
-                                            Number of updates sent each day by all devices since
+                                            Number of updates sent each day by all devices from
                                             <span className="text-info">
-                                                {' ' + getTimeTextFromUnixTime(this.state.start_timestamp, 'fancy')}
+                                                {' ' + getTimeTextFromUnixTime(this.state.start_timestamp, 'fancy') + ' '}
+                                            </span>
+                                            to
+                                            <span className="text-info">
+                                                {' ' + getTimeTextFromUnixTime(this.state.end_timestamp, 'fancy')}
                                             </span>
                                         </div>
                                     </div>
@@ -309,9 +334,13 @@ class Dashboard extends Component {
                                 <div>
                                     <h3 style={{ fontWeight: 'normal', margin: 0 }}>Device Activity report</h3>
                                     <div style={{ padding: '10px 0px' }} >
-                                        % time devices were active since
+                                        % time devices were active from
                                         <span className="text-info">
-                                            {' ' + getTimeTextFromUnixTime(this.state.start_timestamp, '')}
+                                            {' ' + getTimeTextFromUnixTime(this.state.start_timestamp, '') + ' '}
+                                        </span>
+                                        to
+                                        <span className="text-info">
+                                            {' ' + getTimeTextFromUnixTime(this.state.end_timestamp, '')}
                                         </span>
                                     </div>
                                 </div>

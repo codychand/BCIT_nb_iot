@@ -8,12 +8,8 @@ const getTimeTextFromUnixTime = unixTime => {
   dateObj.setTime(unixTime);
 
   // return something like 'Mar 03, 08:01'
-  return (
-    dateObj.toDateString().substr(4, dateObj.toDateString().length - 9) +
-    " " +
-    dateObj.toTimeString().substr(0, 5)
-  );
-};
+  return dateObj.toDateString().substr(4,dateObj.toDateString().length - 9) + " " + dateObj.toTimeString().substr(0,5)
+}
 
 // Chart to show the temperature readings from each chart
 export class AllTemperatureChart extends Component {
@@ -23,26 +19,15 @@ export class AllTemperatureChart extends Component {
       // Chart styling
       options: {
         // data for each series
-        series: [
-          {
-            // device 1 temperature
-            name: "Device1",
-            type: "line",
-            data: [7, 8, 5, 2, 9, 2]
-          },
-          {
-            // device 2 temperature
-            name: "Device2",
-            type: "line",
-            data: [3, 4, 7, 4, 7, 2] // TODO: add data
-          },
-          {
-            // device 3 temperature
-            name: "Device3",
-            type: "line",
-            data: [7, 4, 2, 8, 9, 1] // TODO: add data
-          }
-        ],
+        series: this.props.devices.map(device => ({
+          name: device.deviceID,
+          type: "line",
+          data: device.tsAWS.map((ts, i) => ({
+                  x: getTimeTextFromUnixTime(ts*1000),
+                  y: device["temp"][i]
+              })
+          ).filter((dataPoint, i) => !props.dataFiltering || i % 15 === 0)
+        })),
         chart: {
           height: 900,
           type: "line",
@@ -82,29 +67,7 @@ export class AllTemperatureChart extends Component {
         tooltip: {
           enabled: true,
           shared: true,
-          y: [
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            },
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            },
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            }
-          ]
+          y: this.props.devices.map(device => ({ formatter: val => val + " °C" }))
         },
         grid: {
           borderColor: "#f1f1f1"

@@ -25,7 +25,7 @@ export default class Locations extends Component {
         this.state = {
             currentFloor: 0,
             floor: null,
-            activeTab: '1',
+            activeTab: '0',
         };
         
         this.toggleTab = this.toggleTab.bind(this);
@@ -47,12 +47,10 @@ export default class Locations extends Component {
                             <TabPane className="p-3" tabId={images.indexOf(img).toString()}>
                                 <Floor
                                     image={img.floor}
-                                    devices={this.props.dummyData.allDevices.filter((device) => {
-                                        if (this.props.dummyData.floors[this.state.currentFloor] === device.location)
-                                            return device
-                                            
-                                        return false
-                                    })} 
+                                    devices={this.props.dummyData.allDevices.filter(
+                                        device => 
+                                            this.props.dummyData.floors[this.state.currentFloor] === device.location ? true : false
+                                    )} 
                                 />
                             </TabPane>
                         ))

@@ -80,17 +80,15 @@ class Apexarea extends Component {
                         right: 30
                     }
                 },
-                series: displayParams.map(p => {
-                    return {
+                series: displayParams.map(p => ({
                         name: p,
-                        data: this.props.device.tsAWS.map((ts, i) => {
-                            return {
+                        data: this.props.device.tsAWS.map((ts, i) => ({
                                 x: getTimeTextFromUnixTime(ts*1000),
                                 y: this.props.device[displayParamParsable(p)][i]
-                            }
-                        }).filter((dataPoint, i) => !props.dataFiltering || i % 15 === 0)
-                    }
-                })
+                            })
+                        ).filter((dataPoint, i) => !props.dataFiltering || i % 15 === 0)
+                    })
+                )
             }
         }
 

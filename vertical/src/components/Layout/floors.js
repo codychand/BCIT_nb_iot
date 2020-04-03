@@ -3,24 +3,18 @@ import { Link } from 'react-router-dom';
 
 const styles = {
     deviceBlip: { 
-        width: 20, 
-        height: 20, 
         position: "absolute", 
         backgroundColor: "red", 
-        borderRadius: "50%" ,
+        borderRadius: 5 ,
         cursor: "pointer",
-        paddingLeft: 6
+        padding: '5px 10px'
     }
 }
 
 export default class Floor extends Component {
     constructor(props){
         super(props);
-        this.state = {
-            
-            
-        }   
-    
+        this.state = {}
     }
 
     renderDeviceView() {

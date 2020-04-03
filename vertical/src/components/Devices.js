@@ -114,68 +114,77 @@ const DeviceCard = props => {
             </CardBody>
           </Card>
         </Col>
-      );
-    })[0];
-  } else {
-    return content;
-  }
-};
-
-const Devices = props => {
-  // constants
-  const AAA = ["temp", "humidity", "pressure"];
-  const ALLOWED_DISPLAY_PARAMS = ["Temperature", "Humidity", "Pressure"];
-  const VIEWPORT_CHANGE_FLEX_PX = 1630;
-  const newTime = [
-    ["", Math.floor(Date.now() / 1000 - 1500000)],
-    ["", Math.floor(Date.now() / 1000)]
-  ];
-
-  let sd = null;
-  if (
-    props.location &&
-    props.location.state &&
-    props.location.state.selectedDevice
-  ) {
-    sd = getDeviceIndexFromName(props.location.state.selectedDevice);
-  }
-
-  // state
-  const [selectedDevice, setSelectedDevice] = useState(sd);
-  const [displayParameters, setDisplayParameters] = useState(
-    [0, 1].map(i => ALLOWED_DISPLAY_PARAMS[i])
-  );
-  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
-  const [dataFiltering, setDataFiltering] = useState(true);
-  const [defaultRange, setDefaultRange] = useState(true);
-  const [timestampsWithValue, setTimestampsWithValue] = useState(newTime);
-  const [timestamps, setTimestamps] = useState([newTime[0][1], newTime[1][1]]);
-
-  // functions
-  const toggleDisplayParameter = param => {
-    let currentParams = displayParameters.slice();
-    const i = currentParams.indexOf(param);
-    const j = currentParams.indexOf(null);
-
-    if (i > -1) {
-      currentParams[i] = null;
-    } else if (j > -1) {
-      currentParams[j] = param;
+    );
+    
+    useEffect(() => {
+        api.post(AWS_DATA_QUERY_URL, {
+            parameters: ["temp", "pressure", "humidity", "tsAWS"],
+            start_timestamp: props.timestamps[0],
+            end_timestamp: props.timestamps[1],
+            devices: [props.deviceName]
+        }, { cancelToken: CancelTokenSource.token })
+        .then(res => {
+            setDeviceData(res.data);
+        })
+        .catch(err => console.log(err))
+        
+        return () => {
+            CancelTokenSource.cancel("long request cancelled at re-render");
+            CancelTokenSource = axios.CancelToken.source();
+        }
+    }, [props.deviceName, props.timestamps, props.default]);
+    
+    if (deviceData) {
+        return deviceData.map((device, index) => {
+            let size = (props.viewportWidth <= 1700) ? "6" : "4";
+            
+            return (
+                <Col key={index} xl={size}>
+                    <Card>
+                        <CardBody style={{ padding: props.viewportWidth <= 680 ? 5 : '1.25rem' }} >
+                            <Button 
+                                className="btn-icon" 
+                                onClick={() => props.setSelectedDevice(getDeviceIndexFromName(device.deviceID)) }
+                                color="secondary">  
+                                <span className="btn-icon-label">
+                                    <i className="mdi mdi-bullseye-arrow mr-2"></i>
+                                </span> 
+                                {device.deviceID}
+                            </Button>
+                            <div id="area-chart">
+                                <Apexarea 
+                                    dataFiltering={props.dataFiltering}
+                                    device={device} 
+                                    left={props.displayParameters[0]} 
+                                    right={props.displayParameters[1]} />
+                            </div>
+                        </CardBody>
+                    </Card>
+                </Col>
+            )
+        })[0];
     } else {
       currentParams[0] = param;
     }
 
-    setDisplayParameters(currentParams);
-
-    if (
-      document.getElementById("from-timestamp-input").value ===
-        timestampsWithValue[0][0] &&
-      document.getElementById("to-timestamp-input").value ===
-        timestampsWithValue[1][0]
-    ) {
-      setDefaultRange(true);
-    } else {
-      setDefaultRange(false);
+const Devices = props => {
+    // constants
+    const lsStartTs = localStorage.getItem('start_timestamp');
+    const lsEndTs = localStorage.getItem('end_timestamp');
+    const AAA = ["temp", "humidity", "pressure"];
+    const ALLOWED_DISPLAY_PARAMS = ["Temperature", "Humidity", "Pressure"];
+    const VIEWPORT_CHANGE_FLEX_PX = 1630;
+    const newStartTs = Math.floor((Date.now() / 1000) - 1500000);
+    const newEndTs = Math.floor(Date.now() / 1000);
+    
+    if (!lsStartTs && !lsEndTs) {
+        localStorage.setItem('start_timestamp', newStartTs);
+        localStorage.setItem('end_timestamp', newEndTs);
+    }
+    
+    let sd = null;
+    if (props.location && props.location.state && props.location.state.selectedDevice) {
+        sd = getDeviceIndexFromName(props.location.state.selectedDevice)
     }
     
     // state 
@@ -183,8 +192,10 @@ const Devices = props => {
     const [displayParameters, setDisplayParameters] = useState([0,1].map(i => ALLOWED_DISPLAY_PARAMS[i]));
     const [dataFiltering, setDataFiltering] = useState(true);
     const [defaultRange, setDefaultRange] = useState(true);
-    const [timestampsWithValue, setTimestampsWithValue] = useState(newTime)
-    const [timestamps, setTimestamps] = useState([newTime[0][1], newTime[1][1]])
+    const [timestamps, setTimestamps] = useState([
+        parseInt(lsStartTs) || newStartTs, 
+        parseInt(lsEndTs) || newEndTs
+    ])
     
     // functions
     const toggleDisplayParameter = param => {
@@ -201,24 +212,10 @@ const Devices = props => {
         }
         
         setDisplayParameters(currentParams);
-        
-        if (document.getElementById('from-timestamp-input').value === timestampsWithValue[0][0] &&
-            document.getElementById('to-timestamp-input').value === timestampsWithValue[1][0]) {
-                setDefaultRange(true);
-            } else {
-                setDefaultRange(false);
-            }
     }
     const back = () => setSelectedDevice(null);
-    const setTimestampsHandler = (from, to) => {
-        setTimestamps([from[1], to[1]]);
-        setTimestampsWithValue([from, to])
-        if (from[0] === "" && to[0] === "") {
-            setDefaultRange(true);
-        } else {
-            setDefaultRange(false);
-        }
-    };
+    
+    console.log("hereeeeeeee" + timestamps)
     
     // render logic
     useRouteMatch("/iot_devices");
@@ -299,7 +296,7 @@ const Devices = props => {
     return (
         <React.Fragment>
             <div className="content">
-                <div className="container-fluid">
+                <div className={props.viewportWidth >= 1200 ? "container-fluid" : "container-fluid col-lg-7"}>
                     <div className="page-title-box">
                         <div style={{ 
                             display: 'flex',  
@@ -326,7 +323,9 @@ const Devices = props => {
                                 alignItems: (props.viewportWidth <= VIEWPORT_CHANGE_FLEX_PX) ? "flex-start" : "center", 
                                 flexDirection: (props.viewportWidth <= VIEWPORT_CHANGE_FLEX_PX) ? "column" : "row"
                             }} >
-                                <SimpleDateTimePicker viewportWidth={props.viewportWidth} setTimestamps={(from, to) => setTimestampsHandler(from, to)} />
+                                <SimpleDateTimePicker 
+                                    viewportWidth={props.viewportWidth} 
+                                    setTimestamps={(from, to) => setTimestamps([from, to])} />
                                 { chkbox }
                                 <div className="float-right d-none d-md-block">
                                     <Row style={{
@@ -343,7 +342,8 @@ const Devices = props => {
                                                                 key={displayParameters.indexOf(param)}
                                                                 color="success"
                                                                 style={{
-                                                                    margin: 5
+                                                                    margin: 5,
+                                                                    color: 'black'
                                                                 }}
                                                                 onClick={() => { toggleDisplayParameter(param) }}
                                                                 >{param}</Button>

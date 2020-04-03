@@ -8,19 +8,29 @@ import { Row, Col } from 'reactstrap';
 const dummyData = {
     allDevices: [
       {
-        id: 0,
+        id: "AWS1",
         location: "floor1.png",
         coords: ["35%", "55%"]
       },
       {
-        id: 1,
+        id: "AWS2",
         location: "floor1m.png",
         coords: ["55%", "35%"]
       },
       {
-        id: 2,
+        id: "AWS3",
         location: "floor2.png",
-        coords: ["25%", "35%"]
+        coords: ["65.5%", "35%"]
+      },
+      {
+        id: "AWS4",
+        location: "floor1.png",
+        coords: ["28%", "32%"]
+      },
+      {
+        id: "AWS5",
+        location: "floor1m.png",
+        coords: ["32%", "33%"]
       }
     ],
     floors: ["floor1.png", "floor1m.png", "floor2.png"]

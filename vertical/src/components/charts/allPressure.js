@@ -2,34 +2,32 @@ import React, { Component } from "react";
 
 import ReactApexChart from "react-apexcharts";
 
-// Chart to show pressure readings from each device
+const getTimeTextFromUnixTime = unixTime => {
+  const dateObj = new Date();
+
+  dateObj.setTime(unixTime);
+
+  // return something like 'Mar 03, 08:01'
+  return dateObj.toDateString().substr(4,dateObj.toDateString().length - 9) + " " + dateObj.toTimeString().substr(0,5)
+}
+
+// Chart to show the temperature readings from each chart
 export class AllPressureChart extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // data for each series
-      series: [
-        {
-          // device 1 pressure
-          name: "Device1",
-          type: "line",
-          data: [] // TODO: add data
-        },
-        {
-          // device 2 pressure
-          name: "Device2",
-          type: "line",
-          data: [] // TODO: add data
-        },
-        {
-          // device 2 pressure
-          name: "Device3",
-          type: "line",
-          data: [] // TODO: add data
-        }
-      ],
-      // Chart Styling
+      // Chart styling
       options: {
+        // data for each series
+        series: this.props.devices.map(device => ({
+          name: device.deviceID,
+          type: "line",
+          data: device.tsAWS.map((ts, i) => ({
+                  x: getTimeTextFromUnixTime(ts*1000),
+                  y: device["pressure"][i]
+              })
+          ).filter((dataPoint, i) => !props.dataFiltering || i % 15 === 0)
+        })),
         chart: {
           height: 900,
           type: "line",
@@ -45,38 +43,21 @@ export class AllPressureChart extends Component {
         dataLabels: {
           enabled: false
         },
-        //   stroke: {
-        //     width: [3, 4, 3],
-        //     curve: 'straight',
-        //     dashArray: [0, 8, 5]
-        //   },
         title: {
-          text: "Pressure From All Devices",
+          text: "Temperature From All Devices",
           align: "left"
         },
         markers: {
           size: 0,
-
           hover: {
             sizeOffset: 6
           }
         },
         xaxis: {
-          categories: [
-            "01 Jan",
-            "02 Jan",
-            "03 Jan",
-            "04 Jan",
-            "05 Jan",
-            "06 Jan",
-            "07 Jan",
-            "08 Jan",
-            "09 Jan",
-            "10 Jan",
-            "11 Jan",
-            "12 Jan"
-          ]
+          type: "text",
+          tickPlacement: "on"
         },
+        yaxis: {},
         legend: {
           show: true,
           position: "bottom",
@@ -86,29 +67,7 @@ export class AllPressureChart extends Component {
         tooltip: {
           enabled: true,
           shared: true,
-          y: [
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            },
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            },
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            }
-          ]
+          y: this.props.devices.map(device => ({ formatter: val => val + " hPa" }))
         },
         grid: {
           borderColor: "#f1f1f1"
@@ -118,18 +77,15 @@ export class AllPressureChart extends Component {
   }
   render() {
     return (
-      <div className="app">
-        <div className="row">
-          <div className="mixed-chart">
-            <ReactApexChart
-              options={this.state.options}
-              series={this.state.series}
-              type="line"
-              height="1000"
-            />
-          </div>
-        </div>
-      </div>
+      <React.Fragment>
+        <ReactApexChart
+          // id = {this.props.device.deviceID}
+          options={this.state.options}
+          series={this.state.options.series}
+          type="line"
+          width="100%"
+        />
+      </React.Fragment>
     );
   }
 }

@@ -2,43 +2,34 @@ import React, { Component } from "react";
 
 import ReactApexChart from "react-apexcharts";
 
-// Chart to show the humidity readings from each device
-export class AllHumidityChart extends Component {
+const getTimeTextFromUnixTime = unixTime => {
+  const dateObj = new Date();
+
+  dateObj.setTime(unixTime);
+
+  // return something like 'Mar 03, 08:01'
+  return dateObj.toDateString().substr(4,dateObj.toDateString().length - 9) + " " + dateObj.toTimeString().substr(0,5)
+}
+
+// Chart to show the temperature readings from each chart
+export class AllHumidity extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // data for each series
-      series: [
-        {
-          // device 1 humidity
-          name: "Device1",
-          type: "line",
-          data: [13, 19, 15, 11, 12, 14] // TODO: add data
-        },
-        {
-          // device 2 humidity
-          name: "Device2",
-          type: "line",
-          data: [16, 12, 11, 18, 15, 19] // TODO: add data
-        },
-        {
-          // device 3 humidity
-          name: "Device3",
-          type: "line",
-          data: [12, 15, 9, 8, 15, 16] // TODO: add data
-        },
-        {
-          // device 4 humidity
-          name: "Device4",
-          type: "line",
-          data: [5, 12, 14, 12, 15, 16] // TODO: add data
-        }
-        // add more devices as needed
-      ],
+      // Chart styling
       options: {
-        // Chart settings
+        // data for each series
+        series: this.props.devices.map(device => ({
+          name: device.deviceID,
+          type: "line",
+          data: device.tsAWS.map((ts, i) => ({
+                  x: getTimeTextFromUnixTime(ts*1000),
+                  y: device["humidity"][i]
+              })
+          ).filter((dataPoint, i) => !props.dataFiltering || i % 15 === 0)
+        })),
         chart: {
-          height: 750,
+          height: 900,
           type: "line",
           foreColor: "#9f9ea4",
           zoom: {
@@ -48,23 +39,10 @@ export class AllHumidityChart extends Component {
             show: true
           }
         },
-        colors: [
-          "#4090cb",
-          "#e74c5e",
-          "#47bd9a",
-          "#F9DC5C",
-          "#F17300",
-          "#802392",
-          "#"
-        ],
+        colors: ["#4090cb", "#e74c5e", "#47bd9a"],
         dataLabels: {
           enabled: false
         },
-        //   stroke: {
-        //     width: [3, 4, 3],
-        //     curve: 'straight',
-        //     dashArray: [0, 8, 5]
-        //   },
         title: {
           text: "Humidity From All Devices",
           align: "left"
@@ -76,21 +54,10 @@ export class AllHumidityChart extends Component {
           }
         },
         xaxis: {
-          categories: [
-            "01 Jan",
-            "02 Jan",
-            "03 Jan",
-            "04 Jan",
-            "05 Jan",
-            "06 Jan",
-            "07 Jan",
-            "08 Jan",
-            "09 Jan",
-            "10 Jan",
-            "11 Jan",
-            "12 Jan"
-          ]
+          type: "text",
+          tickPlacement: "on"
         },
+        yaxis: {},
         legend: {
           show: true,
           position: "bottom",
@@ -100,29 +67,7 @@ export class AllHumidityChart extends Component {
         tooltip: {
           enabled: true,
           shared: true,
-          y: [
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            },
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            },
-            {
-              title: {
-                formatter: function(val) {
-                  return val;
-                }
-              }
-            }
-          ]
+          y: this.props.devices.map(device => ({ formatter: val => val + "%" }))
         },
         grid: {
           borderColor: "#f1f1f1"
@@ -132,20 +77,17 @@ export class AllHumidityChart extends Component {
   }
   render() {
     return (
-      <div className="app">
-        <div className="row">
-          <div className="line">
-            <ReactApexChart
-              options={this.state.options}
-              series={this.state.series}
-              type="line"
-              width="1000"
-            />
-          </div>
-        </div>
-      </div>
+      <React.Fragment>
+        <ReactApexChart
+          // id = {this.props.device.deviceID}
+          options={this.state.options}
+          series={this.state.options.series}
+          type="line"
+          width="100%"
+        />
+      </React.Fragment>
     );
   }
 }
 
-export default AllHumidityChart;
+export default AllHumidity;
