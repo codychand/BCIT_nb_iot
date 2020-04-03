@@ -1,25 +1,31 @@
 # BCIT NB IoT
 
-There are 2 (potentially 3) npm project root folders.
+There are 2 npm project root folders.
+
+Before running either server, you must run npm install in both the root directory (/) and the vertical directory (/vertical).
 - /
-    - back-end folder with express server
+    - back-end folder with express server (index.js)
+    - the following must be run to start the server
+        - export AWS_SECRET_ACCESS_KEY=<The secret key associated with your AWS access key id>
+        - export AWS_ACCESS_KEY_ID=<Your AWS access key id>
+        - node ./index.js &
+            
 
-- /client
+- /vertical
     - front-end that will contain the react code and apexcharts. 
-    - anyone working solely on the front-end will probably just need to write inside this folder
-
-- /lambda (pending)
-    - will contain the lambda code
+    - the following must be run to start the react server (App.js)
+        - npm run build
+        - serve -s build &
     
 # Directory structure
     .
     ├── node_modules    # for the root folder (express) 
-    ├── client
+    ├── vertical
     │   ├── node_modules
     │   ├── public
     │   └── src
     ├── Deliverables
     │   └── Documents
-    ├── lambda
+    ├── index.js
     └── ...
     
